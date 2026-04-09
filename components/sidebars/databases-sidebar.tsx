@@ -118,27 +118,26 @@ export default function DatabasesSidebar() {
    const variants: Variants = useMemo(() => {
       if (isReduced) {
          return {
-            hidden: { marginLeft: 0, marginRight: 0, translateY: 0, opacity: 0, filter: "blur(0px)" },
-            visible: { marginLeft: 0, marginRight: 0, translateY: 0, opacity: 1, filter: "blur(0px)" },
+            hidden: { marginLeft: isMobile ? 0 : "-18rem", translateY: 0, opacity: 0, filter: "blur(0px)" },
+            visible: { marginLeft: 0, translateY: 0, opacity: 1, filter: "blur(0px)" },
          };
       }
 
       if (isMobile) {
          return {
-            hidden: { marginLeft: 0, marginRight: 0, translateY: "110%", opacity: 0, filter: "blur(4px)" },
-            visible: { marginLeft: 0, marginRight: 0, translateY: "0%", opacity: 1, filter: "blur(0px)" },
+            hidden: { marginLeft: 0, translateY: "110%", opacity: 0, filter: "blur(4px)" },
+            visible: { marginLeft: 0, translateY: "0%", opacity: 1, filter: "blur(0px)" },
          };
       }
 
       return {
          hidden: {
             marginLeft: "-18rem",
-            marginRight: "0rem",
             translateY: 0,
             opacity: 0,
             filter: "blur(4px)",
          },
-         visible: { marginLeft: 0, marginRight: "0.375rem", translateY: 0, opacity: 1, filter: "blur(0px)" },
+         visible: { marginLeft: 0, translateY: 0, opacity: 1, filter: "blur(0px)" },
       };
    }, [isMobile, isReduced]);
 
@@ -159,10 +158,10 @@ export default function DatabasesSidebar() {
                   damping: 37,
                }}
                className={cn(
-                  "isolate z-50 flex shrink-0 grow flex-col self-stretch overflow-hidden rounded-lg border-1 border-gray-950/10 bg-gray-100 bg-clip-padding shadow-xs",
+                  "isolate flex shrink-0 grow flex-col self-stretch overflow-hidden",
                   isMobile
-                     ? "absolute top-11 right-2 bottom-2 left-2"
-                     : "my-2 max-h-[calc(100svh-1rem)] w-full max-w-72",
+                     ? "bg-background xs:max-w-80 max-xs:left-2 xs:w-full absolute top-22.25 right-2 bottom-12.5 z-50 rounded-lg border"
+                     : "max-h-svh w-full max-w-72",
                )}
             >
                {/* <div className="h-11 self-stretch border-b border-b-border" /> */}
@@ -365,19 +364,21 @@ function Item({ database, state }: { database: GetDatabasesReturn[number]; state
                      <ul role="list" className="flex grow flex-col self-stretch py-1 pl-4">
                         {found?.tables?.map((table) => {
                            const href = `/databases/${database.id}/table/${table.table_name}`;
+                           const selected = pathname.startsWith(href);
+
                            return (
                               <li key={table?.table_name}>
                                  <Link
-                                    href={href}
-                                    aria-pressed={pathname === href}
+                                    href={selected ? pathname : href}
+                                    aria-selected={selected}
                                     className={buttonVariants({
                                        intent: "ghost",
                                        size: "xs",
                                        className:
-                                          "group aria-pressed:bg-primary/15 const aria-pressed:hover:bg-primary/30 relative w-full justify-start gap-2 rounded-sm",
+                                          "group aria-selected:bg-primary/15 const aria-selected:hover:bg-primary/30 relative w-full justify-start gap-2 rounded-sm",
                                     })}
                                  >
-                                    <Table2 className="group-aria-pressed:text-primary-hover size-4 shrink-0 opacity-70 dark:group-aria-pressed:text-emerald-400" />
+                                    <Table2 className="group-aria-selected:text-primary-hover size-4 shrink-0 opacity-70 dark:group-aria-selected:text-emerald-400" />
                                     <span className="truncate">{table?.table_name}</span>
                                     <LoadingIndicator />
                                     {/* {pathname === href && <span className="bg-primary ml-auto size-2.5" />} */}

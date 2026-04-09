@@ -18,6 +18,8 @@ import { redirect } from "next/navigation";
 import to from "@/helpers/to";
 import credentialsSchema, { ICredentials } from "@/dtos/credentials";
 import { failure, success } from "./@base";
+import { eq } from "drizzle-orm";
+import { databasesTable } from "@/db/schema";
 
 export const testDatabase = createServerAction()
    .input(
@@ -72,6 +74,19 @@ export async function testDatabaseConnection(data: ICredentials) {
       success: false,
       error: new BadRequestException("Can't connect to the database", { cause: connected.error }).toJSON(),
    };
+}
+
+export async function getDatabases() {
+   const session = await authenticate();
+   if (!session?.user) redirect("/auth/sign-in");
+
+   const service = DatabaseService.build(db);
+   const found = await service.get(eq(databasesTable.owner_id, session.user.id));
+
+   const error = NewNotFoundException.create({ message: "Database not found" });
+   if (!found) return failure(error);
+
+   return success(found);
 }
 
 const uuidSchema = z

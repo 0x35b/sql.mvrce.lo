@@ -54,7 +54,7 @@ function Sidebar() {
             stiffness: 500,
             damping: 37,
          }}
-         className="sticky top-0 z-[2] flex flex-col self-stretch md:w-14"
+         className="bg-background sticky top-0 z-[2] flex flex-col self-stretch max-md:border-b md:w-14.25 md:border-r"
       >
          {/* <div className="bg-background grid max-h-[calc(2.5rem+1px)] place-items-center border-b py-2">
             <Logo className="size-6" />

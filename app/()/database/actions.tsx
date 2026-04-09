@@ -17,7 +17,7 @@ export const connectToDatabase = authedProcedure
          db
             .select()
             .from(databasesTable)
-            .where(and(eq(databasesTable.id, input), eq(databasesTable.owner_id, ctx.user.id))),
+            .where(and(eq(databasesTable.id, input), eq(databasesTable.owner_id, ctx.user?.id ?? 0))),
       );
       if (error) throw new InternalServerException({ cause: error });
       if (!databases?.length) throw new NotFoundException("Database doesn't exist.");

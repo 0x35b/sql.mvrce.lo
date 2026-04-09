@@ -104,13 +104,46 @@ export const deleteDatabase = authedProcedure
    .input(z.string().min(1, "Invalid ID").uuid())
    .handler(async ({ ctx, input }) => {
       const { data, error } = await tryCatch(
-         db.delete(databasesTable).where(and(eq(databasesTable.id, input), eq(databasesTable.owner_id, ctx.user.id))),
+         db
+            .delete(databasesTable)
+            .where(and(eq(databasesTable.id, input), eq(databasesTable.owner_id, ctx.user?.id ?? 0))),
       );
 
       if (error) throw new InternalServerException({ cause: error });
 
       if (!data.rowCount || data.rowCount <= 0) throw new NotFoundException("Database doesn`t exists.");
    });
+
+type QueryField = {
+   name: string;
+   position: number;
+   type: string;
+   nullable: "YES" | "NO";
+   default: string;
+   key_type: string;
+};
+
+export type DatabaseTable = {
+   table_name: string;
+   column_name: string;
+};
+
+function inferQueryFieldType(value: unknown): QueryField["type"] {
+   if (value === null || value === undefined) return "text";
+   if (Array.isArray(value)) return value.every((item) => typeof item === "number") ? "_int4" : "_text";
+   if (value instanceof Date) return "timestamptz";
+
+   switch (typeof value) {
+      case "boolean":
+         return "bool";
+      case "number":
+         return Number.isInteger(value) ? "int8" : "numeric";
+      case "object":
+         return "jsonb";
+      default:
+         return "text";
+   }
+}
 
 export const queryDatabase = authedProcedure
    .input(
@@ -126,14 +159,71 @@ export const queryDatabase = authedProcedure
 
       try {
          const result = await client?.query(input.sql, input.params);
-         if (!result) return { fields: [], rows: [] };
+         if (!result) return { count: 0, fields: [], rows: [] };
 
-         return { success: true };
+         const fields = result.fields.map<QueryField>((field, index) => {
+            const firstValue = result.rows.find((row) => row && typeof row === "object" && field.name in row)?.[
+               field.name
+            ];
+
+            return {
+               name: field.name,
+               position: index + 1,
+               type: inferQueryFieldType(firstValue),
+               nullable: "YES",
+               default: "",
+               key_type: "",
+            };
+         });
+
+         return {
+            count: result.count,
+            rows: result.rows,
+            fields,
+         };
       } catch (error) {
          console.error(error);
          throw new InternalServerException({ cause: error });
+      } finally {
+         await client?.end();
       }
    });
+
+export type GetDatabaseTablesReturn = NonNullable<Awaited<ReturnType<typeof getDatabaseTables>>[0]>;
+export const getDatabaseTables = authedProcedure.input(z.string().min(1, "Invalid ID")).handler(async ({ input }) => {
+   const [client, error] = await getConnection(input);
+   if (error) throw error;
+
+   try {
+      const tables = await client?.query<DatabaseTable>(
+         `SELECT ist.table_name, isc.column_name
+         FROM information_schema.tables as ist
+         LEFT JOIN information_schema.columns as isc ON ist.table_name = isc.table_name
+         WHERE ist.table_schema = 'public' AND ist.table_type = 'BASE TABLE'
+         ORDER BY ist.table_name`,
+      );
+
+      return tables.rows.reduce(
+         (acc, cur) => {
+            const exists = acc.find((x) => x.table_name === cur.table_name);
+            if (!exists) {
+               acc.push({ table_name: cur.table_name, columns: [cur.column_name] });
+               return acc;
+            }
+
+            exists.columns.push(cur.column_name);
+
+            return acc;
+         },
+         [] as { table_name: string; columns: string[] }[],
+      );
+   } catch (error) {
+      console.error(error);
+      throw new InternalServerException({ cause: error });
+   } finally {
+      await client?.end();
+   }
+});
 
 export const connectDatabase = authedProcedure.input(z.string().min(1, "Invalid ID")).handler(async ({ input }) => {
    const [found, error] = await findDatabase(input);

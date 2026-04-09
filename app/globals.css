@@ -4,6 +4,32 @@
    --breakpoint-xxs: 320px;
    --breakpoint-xs: 448px;
 
+   --font-geist-sans: var(--font-geist-sans);
+   --animate-spin-reverse: spin-reverse 1s linear infinite;
+   --animate-spinner-spin: spinner-spin 0.8s linear infinite;
+
+   @keyframes spin-reverse {
+      from {
+         transform: rotate(360deg);
+      }
+      to {
+         transform: rotate(0deg);
+      }
+   }
+
+   @keyframes spinner-spin {
+      0% {
+         opacity: 1;
+      }
+      100% {
+         opacity: 0.15;
+      }
+   }
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
    --color-background: var(--background);
    --color-high-contrast: var(--high-contrast);
    --color-foreground: var(--foreground);
@@ -31,29 +57,7 @@
    --color-primary-hover: #0a7f58;
 
    --color-primary-300: var(--primary-300);
-   --font-geist-sans: var(--font-geist-sans);
-   --animate-spin-reverse: spin-reverse 1s linear infinite;
-   --animate-spinner-spin: spinner-spin 0.8s linear infinite;
-
-   @keyframes spin-reverse {
-      from {
-         transform: rotate(360deg);
-      }
-      to {
-         transform: rotate(0deg);
-      }
-   }
-
-   @keyframes spinner-spin {
-      0% {
-         opacity: 1;
-      }
-      100% {
-         opacity: 0.15;
-      }
-   }
 }
-@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
    *,
@@ -80,7 +84,9 @@
       background: transparent;
    }
    :root,
-   .light {
+   .light,
+   .dark\:light {
+      color-scheme: light;
       --background: #fafafa;
       --high-contrast: #0a0a0a;
       --foreground: oklch(26.9% 0 0);
@@ -106,7 +112,9 @@
       /* --primary-300: #4d88ff;
          --primary-300: #6699ff; */
    }
-   .dark {
+   .dark,
+   .light\:dark {
+      color-scheme: dark;
       --background: #080808;
       --high-contrast: #fcfcfc;
       --foreground: oklch(92.2% 0 0);

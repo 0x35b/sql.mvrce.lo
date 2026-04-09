@@ -8,9 +8,9 @@ export const TableWrapper = React.forwardRef<HTMLDivElement, React.ComponentProp
          <div
             aria-description="Table wrapper"
             data-scroll-container
-            ref={ref}
             {...props}
             className={cn("relative w-full grow", className)}
+            ref={ref}
          />
       );
    },
@@ -19,16 +19,7 @@ TableWrapper.displayName = "TableWrapper";
 
 export const Table = React.forwardRef<HTMLTableElement, React.ComponentPropsWithoutRef<"table">>(
    ({ className, ...props }, ref) => {
-      return (
-         <div
-            ref={ref}
-            className={cn(
-               "grid auto-rows-auto grid-cols-[repeat(var(--columns),minmax(0,auto))] text-sm text-gray-800",
-               className,
-            )}
-            {...props}
-         />
-      );
+      return <div ref={ref} className={cn("flex flex-col text-sm text-gray-800", className)} {...props} />;
    },
 );
 Table.displayName = "Table";
@@ -60,14 +51,7 @@ TBody.displayName = "TBody";
 
 export const TRow = React.forwardRef<HTMLTableRowElement, React.ComponentPropsWithoutRef<"tr">>(
    ({ className, ...props }, ref) => {
-      return (
-         <div
-            role="row"
-            className={cn("col-span-full grid grid-cols-subgrid [&>*]:border-b", className)}
-            {...props}
-            ref={ref}
-         />
-      );
+      return <div role="row" className={cn("[&>*]:border-b", className)} {...props} ref={ref} />;
    },
 );
 TRow.displayName = "TRow";

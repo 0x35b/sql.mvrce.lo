@@ -40,7 +40,7 @@ export const DataTableColumnHeader = ({ children, id, column, className, ...prop
                className={buttonVariants({
                   intent: "ghost",
                   size: "none",
-                  className: "aria-expanded:bg-muted group -mr-2 size-7",
+                  className: "group -mr-2 size-7 aria-expanded:border-gray-950/5 aria-expanded:bg-gray-200",
                })}
             >
                {sort !== id && (

@@ -1,7 +1,7 @@
 CREATE TABLE "databases" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone,
 	"name" varchar(255) NOT NULL,
 	"description" varchar(512),
 	"owner_id" integer NOT NULL,

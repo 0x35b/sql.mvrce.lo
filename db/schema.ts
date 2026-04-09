@@ -64,7 +64,7 @@ export const userEmailsTable = pgTable(
 );
 
 // table for share database between users
-export const userDatabasesTable = pgTable(
+export const sharedDatabasesTable = pgTable(
    "user_databases",
    {
       id: serial().primaryKey(),
@@ -97,8 +97,8 @@ export const databasesTable = pgTable(
       id: uuid()
          .primaryKey()
          .default(sql`gen_random_uuid()`),
-      created_at: timestamp().notNull().defaultNow(),
-      updated_at: timestamp().$onUpdate(() => new Date()),
+      created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+      updated_at: timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
       name: varchar({ length: 255 }).notNull(),
       description: varchar({ length: 512 }),
       owner_id: integer()

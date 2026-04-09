@@ -15,12 +15,14 @@ const SelectValue = SelectPrimitive.Value;
 
 export type SelectTriggerVariants = VariantProps<typeof selectTriggerVariants>;
 export const selectTriggerVariants = cva(
-   "flex items-center justify-between w-full rounded-md focus:outline-none focus-visible:outline-none text-sm disabled:cursor-not-allowed disabled:opacity-50",
+   "flex items-center justify-between w-full rounded-md outline-none text-sm disabled:cursor-not-allowed disabled:opacity-50",
    {
       variants: {
          intent: {
-            primary:
-               "bg-gray-100 focus:bg-background aria-expanded:bg-background border border-border focus:border-primary aria-expanded:border-primary focus:ring-1 aria-expanded:ring-1 ring-border focus:ring-primary aria-expanded:ring-primary",
+            primary: [
+               "bg-gray-100 focus:bg-background aria-expanded:bg-background border border-gray-950/10 bg-clip-padding focus:border-primary aria-expanded:border-primary focus:ring-1 aria-expanded:ring-1 ring-gray-950/10 focus:ring-primary aria-expanded:ring-primary",
+               "focus-visible:outline-2 focus-visible:outline-primary",
+            ],
             gray: "bg-gray-100 focus:bg-background aria-expanded:bg-background border border-border focus:border-gray-800 aria-expanded:border-gray-800 focus:ring-1 aria-expanded:ring-1 ring-border focus:ring-gray-800 aria-expanded:ring-gray-800",
             opaque:
                "bg-gray-200 focus:bg-gray-100 aria-expanded:bg-gray-100 border border-gray-200 hover:border-border focus:border-gray-800 aria-expanded:border-gray-800 focus:ring-1 aria-expanded:ring-1 ring-border focus:ring-gray-800 aria-expanded:ring-gray-800",

@@ -20,9 +20,10 @@ const buttonVariants = cva(
                "bg-background border border-border text-gray-700 hover:border-gray-400 hover:bg-gray-100 hover:text-foreground outline-primary outline-offset-2 active:bg-gray-100",
             fillup:
                "bg-background focus-visible:border-gray-100 focus-visible:bg-gray-100 border border-gray-200 text-gray-700 hover:bg-gray-200 hover:text-foreground outline-primary outline-offset-2 active:bg-gray-100",
-            secondary:
-               "bg-gray-100 text-gray-900 hover:bg-gray-100/80 dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-800/80",
-            ghost: "text-gray-700 hover:bg-gray-200 hover:text-foreground outline-primary outline-offset-2 focus-visible:bg-gray-200",
+            secondary: "bg-gray-100 text-gray-900 hover:bg-gray-100/80",
+            ghost: "border border-transparent text-gray-700 hover:bg-gray-200 hover:border-gray-950/3 hover:text-foreground outline-primary focus-visible:bg-gray-200",
+            "danger-ghost":
+               "text-red-500 hover:bg-red-500/15 active:bg-red-500/20 hover:text-rose-600  outline-red-500  focus-visible:bg-gray-200",
             link: "text-gray-700 hover:underline underline-offset-4 hover:text-foreground",
          },
          size: {

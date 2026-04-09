@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { SIDEBAR_ENTRANCE_DURATION, SIDEBAR_EXIT_DURATION, SIDEBAR_SIZE } from "./constants";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useEvent } from "@/hooks/use-event";
 import { isFocusedOnElement } from "@/lib/is-focused-on-element";
@@ -52,7 +51,15 @@ const GROUPED_ROUTES = [
 ];
 
 export default function MarketingAside() {
-   const { data: session } = useSession();
+   // const { data: session } = useSession();
+   const session = {
+      user: {
+         id: "1",
+         name: "John doe",
+         email: "https.braganca@gmail.com",
+         image: "https://example.com/image.jpg",
+      },
+   };
 
    const open = useOpen();
    const toggleOpen = useOpenToggle();

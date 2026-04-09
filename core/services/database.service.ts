@@ -9,6 +9,7 @@ import type { DatabaseSchema } from "@/dtos/databases.dto";
 import { BadRequestException, NotFoundException, NotImplementedException } from "@/infra/errors";
 
 import { AES, enc } from "crypto-js";
+import { PgColumn } from "drizzle-orm/pg-core";
 
 type CreateDatabaseSchema = StrictOmit<DatabaseSchema, "id">;
 type UpdateDatabaseSchema = Partial<CreateDatabaseSchema>;
@@ -27,6 +28,10 @@ export default class DatabaseService {
 
    public async get(where?: SQL | undefined) {
       return await this.database.select().from(this.table).where(where);
+   }
+
+   public async getGrouped(groupBy: PgColumn | SQL<DatabasesTable>, where?: SQL | undefined) {
+      return await this.database.select().from(this.table).where(where).groupBy(groupBy);
    }
 
    public async find(id: string) {

@@ -125,7 +125,6 @@ class PSQLDatabase<TStatus extends Status = "disconnected"> implements IDatabase
                `SELECT * FROM ${table} ORDER BY ${typeof options.sort === "number" ? options.sort : `"${options.sort}"`} ${options.order} LIMIT ${options.limit}`,
             ),
          ]);
-         console.log({ fields: fields.rows });
 
          return { count: data?.rowCount || 0, rows: data?.rows ?? [], fields: fields.rows };
       } catch (error) {

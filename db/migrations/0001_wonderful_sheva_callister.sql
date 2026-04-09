@@ -1,0 +1,2 @@
+ALTER TABLE "databases" ALTER COLUMN "created_at" SET DATA TYPE timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "databases" ALTER COLUMN "updated_at" SET DATA TYPE timestamp with time zone;

@@ -1,22 +1,8 @@
-import TerminalsSidebar from "@/components/sidebars/terminals-sidebar";
-import Editor from "./editor";
+import { getDatabases } from "@/models/databases";
+import TerminalsWorkspace from "./terminals-workspace";
 
-export default function Page() {
-   return (
-      <section className="flex grow self-stretch">
-         <TerminalsSidebar />
-         <Editor />
-         {/* <div
-            className="bg-background caret-primary h-full grow self-stretch p-4 px-1 py-2 text-sm whitespace-pre outline-none"
-            contentEditable
-            onChange={(e) => {
-               console.log(e.currentTarget.textContent);
-            }}
-         /> */}
-         {/* <TextArea
-            intent="none"
-            className="bg-background caret-primary h-full grow resize-none self-stretch rounded-none px-1"
-         /> */}
-      </section>
-   );
+export default async function Page() {
+   const [databases = []] = await getDatabases();
+
+   return <TerminalsWorkspace databases={databases ?? []} />;
 }

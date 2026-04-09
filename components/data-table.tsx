@@ -13,10 +13,13 @@ import {
    flexRender,
    getCoreRowModel,
    getFacetedRowModel,
+   Row,
+   Table as TableType,
    useReactTable,
    VisibilityState,
 } from "@tanstack/react-table";
-import { CSSProperties, useMemo, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { CSSProperties, RefObject, useCallback, useMemo, useRef, useState } from "react";
 
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import { GetTableReturn } from "@/lib/database-factory";
@@ -43,12 +46,17 @@ export interface DataTableProps {
 function getCommonPinningStyles<TData>(column: Column<TData>): CSSProperties {
    const isPinned = column.getIsPinned();
 
+   const minSize = column.columnDef.minSize ?? 0;
+   const maxSize = column.columnDef.maxSize ?? 0;
+   const size = Math.max(Math.min(column.getSize(), maxSize), minSize);
+
    return {
       left: isPinned === "left" ? `${column.getStart("left")}px` : undefined,
       right: isPinned === "right" ? `${column.getAfter("right")}px` : undefined,
       position: isPinned ? "sticky" : "relative",
-      width: column.getSize(),
-      maxWidth: `max(${column.getSize()}px,60svw)`,
+      width: size,
+      flexBasis: size,
+      maxWidth: `max(${maxSize}px,60svw)`,
       zIndex: isPinned ? 1 : 0,
    };
 }
@@ -139,68 +147,79 @@ export function DataTable({ fields = [], rows = [], editable = true }: DataTable
       columnResizeMode,
       columnResizeDirection,
    });
+   const tableRows = table.getRowModel().rows;
+
+   const scrollElementRef = useRef<HTMLDivElement>(null);
+   const virtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
+      count: rows.length,
+      getScrollElement: () => scrollElementRef.current,
+      estimateSize: () => 29, //estimate row height for accurate scrollbar dragging
+      overscan: 5,
+   });
+
+   const handleScrollElementRef = useCallback(
+      (element: HTMLDivElement | null) => {
+         scrollElementRef.current = element;
+         if (element) {
+            virtualizer.measure();
+         }
+      },
+      [virtualizer],
+   );
 
    return (
-      <div className="h-full">
-         <TableWrapper className="flex h-full flex-col overflow-auto">
-            <div
-               role="rowheader"
-               className="grid-stack sticky top-0 z-[2] flex w-max flex-row border-b text-sm text-gray-700"
-            >
-               {table.getHeaderGroups().map((headerGroup) =>
-                  headerGroup.headers.map((header, index) => {
-                     return (
-                        <div
-                           key={header.id}
-                           data-pinned={header.column.getIsPinned() || undefined}
+      <TableWrapper className="flex h-full flex-col overflow-auto" ref={handleScrollElementRef}>
+         <div role="rowheader" className="sticky top-0 z-[2] flex w-max flex-row border-b text-sm text-gray-700">
+            {table.getHeaderGroups().map((headerGroup) =>
+               headerGroup.headers.map((header, index) => {
+                  return (
+                     <div
+                        key={header.id}
+                        data-pinned={header.column.getIsPinned() || undefined}
+                        className={cn(
+                           "group grid h-9 shrink-0 grid-cols-1 items-center truncate border-r bg-gray-100 px-3 font-medium",
+                        )}
+                        style={{ ...getCommonPinningStyles(header.column) }}
+                     >
+                        {index > 0 ? (
+                           <DataTableColumnHeader
+                              id={header.id}
+                              column={header.column}
+                              // className={
+                              //    table.getState().columnSizingInfo.deltaOffset !== 0 ? "pointer-events-none" : ""
+                              // }
+                           >
+                              {flexRender(header.column.columnDef.header, header.getContext())}
+                           </DataTableColumnHeader>
+                        ) : (
+                           flexRender(header.column.columnDef.header, header.getContext())
+                        )}
+
+                        <span
                            className={cn(
-                              "group grid h-9 shrink-0 grid-cols-1 items-center truncate border-r bg-gray-100 px-3 font-medium",
+                              "absolute inset-y-0 z-[1] h-full w-1 cursor-col-resize touch-none bg-transparent select-none ltr:right-0 rtl:left-0",
+                              header.column.getIsResizing() ? "bg-primary" : "hover:bg-primary",
                            )}
-                           style={{ ...getCommonPinningStyles(header.column) }}
-                        >
-                           {index > 0 ? (
-                              <DataTableColumnHeader
-                                 id={header.id}
-                                 column={header.column}
-                                 // className={
-                                 //    table.getState().columnSizingInfo.deltaOffset !== 0 ? "pointer-events-none" : ""
-                                 // }
-                              >
-                                 {flexRender(header.column.columnDef.header, header.getContext())}
-                              </DataTableColumnHeader>
-                           ) : (
-                              flexRender(header.column.columnDef.header, header.getContext())
-                           )}
+                           onDoubleClick={() => header.column.resetSize()}
+                           onMouseDown={header.getResizeHandler()}
+                           onTouchStart={header.getResizeHandler()}
+                           style={{
+                              transform: header.column.getIsResizing()
+                                 ? `translateX(${
+                                      (table.options.columnResizeDirection === "rtl" ? -1 : 1) *
+                                      (table.getState().columnSizingInfo.deltaOffset ?? 0)
+                                   }px)`
+                                 : "",
+                           }}
+                        />
+                     </div>
+                  );
+               }),
+            )}
+         </div>
 
-                           <span
-                              className={cn(
-                                 "absolute inset-y-0 z-[1] h-full w-1 cursor-col-resize touch-none bg-transparent select-none ltr:right-0 rtl:left-0",
-                                 header.column.getIsResizing() ? "bg-primary" : "hover:bg-primary",
-                              )}
-                              onDoubleClick={() => header.column.resetSize()}
-                              onMouseDown={header.getResizeHandler()}
-                              onTouchStart={header.getResizeHandler()}
-                              style={{
-                                 transform: header.column.getIsResizing()
-                                    ? `translateX(${
-                                         (table.options.columnResizeDirection === "rtl" ? -1 : 1) *
-                                         (table.getState().columnSizingInfo.deltaOffset ?? 0)
-                                      }px)`
-                                    : "",
-                              }}
-                           />
-                        </div>
-                     );
-                  }),
-               )}
-            </div>
-
-            <Table
-               className="w-max shrink-0 grow overflow-visible"
-               // @ts-expect-error defining the number of columns
-               style={{ "--columns": columns.length, direction: columnResizeDirection }}
-            >
-               {/* <THead className="absolute top-0 flex flex-row">
+         <Table className="flex grow overflow-visible" style={{ direction: columnResizeDirection }}>
+            {/* <THead className="absolute top-0 flex flex-row">
                      {table.getHeaderGroups().map((headerGroup) => (
                         <TRow key={headerGroup.id} className="flex flex-row bg-gray-100">
                            {headerGroup.headers.map((header, index) => {
@@ -249,9 +268,22 @@ export function DataTable({ fields = [], rows = [], editable = true }: DataTable
                         </TRow>
                      ))}
                   </THead> */}
-               <TBody className="h-fit">
-                  {table.getRowModel().rows?.map((row, index) => (
-                     <TRow key={row.id} data-index={index + 1} className="group/tr hover:text-foreground">
+            {/* <Body table={table} tableContainerRef={tableContainerRef} /> */}
+            <TBody className="relative flex h-fit grow flex-col">
+               {virtualizer.getVirtualItems().map((virtualRow) => {
+                  const row = tableRows[virtualRow.index] as Row<unknown>;
+                  if (!row) return null;
+
+                  return (
+                     <TRow
+                        style={{
+                           transform: `translateY(${virtualRow.start}px)`,
+                        }}
+                        key={virtualRow.key}
+                        data-index={virtualRow.index}
+                        ref={virtualizer.measureElement}
+                        className="group/tr hover:text-foreground absolute flex shrink-0 grow"
+                     >
                         {row.getVisibleCells()?.map((cell) => {
                            return (
                               <Td
@@ -259,20 +291,75 @@ export function DataTable({ fields = [], rows = [], editable = true }: DataTable
                                  data-pinned={cell.column.getIsPinned() ? true : undefined}
                                  key={cell.id}
                                  className={cn(
-                                    "bg-background group/td hover:bg-background overflow-visible p-0 group-hover/tr:bg-gray-100",
+                                    "bg-background group/td hover:bg-background block shrink grow overflow-hidden p-0 group-hover/tr:bg-gray-100",
                                  )}
                                  style={{ ...getCommonPinningStyles(cell.column) }}
                               >
                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                 {/* <span className="group-focus-within/td:border-primary pointer-events-none absolute -inset-px z-10 group-first/tr:top-0 group-focus-within/td:border" /> */}
+                                 <span className="group-focus-within/td:border-primary pointer-events-none absolute -inset-px z-10 group-first/tr:top-0 group-focus-within/td:border" />
                               </Td>
                            );
                         })}
                      </TRow>
-                  ))}
-               </TBody>
-            </Table>
-         </TableWrapper>
-      </div>
+                  );
+               })}
+            </TBody>
+         </Table>
+      </TableWrapper>
+   );
+}
+
+interface BodyProps {
+   table: TableType<unknown>;
+   tableContainerRef: RefObject<HTMLDivElement | null>;
+}
+
+function Body({ table, tableContainerRef }: BodyProps) {
+   const { rows } = table.getRowModel();
+
+   // const scrollElementRef = useRef<HTMLDivElement | null>(tableContainerRef.current);
+   const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
+      count: rows.length,
+      getScrollElement: () => tableContainerRef.current,
+      estimateSize: () => 29, //estimate row height for accurate scrollbar dragging
+      overscan: 5,
+   });
+
+   return (
+      <TBody className="relative flex h-fit grow flex-col">
+         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const row = rows[virtualRow.index] as Row<unknown>;
+            if (!row) return null;
+
+            return (
+               <TRow
+                  style={{
+                     transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={rowVirtualizer.measureElement}
+                  className="group/tr hover:text-foreground absolute flex shrink-0 grow"
+               >
+                  {row.getVisibleCells()?.map((cell) => {
+                     return (
+                        <Td
+                           role="cell"
+                           data-pinned={cell.column.getIsPinned() ? true : undefined}
+                           key={cell.id}
+                           className={cn(
+                              "bg-background group/td hover:bg-background block shrink grow overflow-hidden p-0 group-hover/tr:bg-gray-100",
+                           )}
+                           style={{ ...getCommonPinningStyles(cell.column) }}
+                        >
+                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                           <span className="group-focus-within/td:border-primary pointer-events-none absolute -inset-px z-10 group-first/tr:top-0 group-focus-within/td:border" />
+                        </Td>
+                     );
+                  })}
+               </TRow>
+            );
+         })}
+      </TBody>
    );
 }

@@ -7,33 +7,30 @@ import { Session } from "@/global";
 
 export const cookiesAuthKey = "AUTH";
 
+export const sessionMock: Session = {
+   user: {
+      id: 1,
+      name: "John doe",
+      email: "https.braganca@gmail.com",
+      image: "https://example.com/image.jpg",
+   },
+};
+
 export async function authenticate(): Promise<Session | null> {
+   if (process.env.NODE_ENV === "development") return sessionMock;
    const session: Session = (await auth()) as Session;
    if (!session?.user) return null;
+
    return session as { user: NonNullable<(typeof session)["user"]> };
 }
 
 export const authedProcedure = createServerActionProcedure()
    .handler(async () => {
-      const session: Session = (await auth()) as Session;
-      if (!session?.user) throw new UnauthorizedException();
-      return session as { user: NonNullable<(typeof session)["user"]> };
+      const session = await authenticate();
+      if (!session) throw new UnauthorizedException();
+      return session;
    })
    .createServerAction();
-
-// interface UnauthorizedProps {
-//    toast?: { intent?: "default" | "success" | "error"; message: string };
-//    redirect?: string;
-// }
-
-// function unauthorized(props?: UnauthorizedProps): never {
-//    if (isObjectEmpty(props)) redirect("/auth/sign-in");
-//    redirect(
-//       `/auth/sign-in?${Object.entries(props ?? {})
-//          .map((x) => x.join("="))
-//          .join("&")}`,
-//    );
-// }
 
 const Authentication = { authedProcedure };
 export default Authentication;
