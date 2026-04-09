@@ -1,17 +1,11 @@
 "use client";
 
-import { ArrowDownToLine, Copy, Loader2, Play, Search } from "lucide-react";
+import { ArrowDownToLine, Loader2, Play, Search } from "lucide-react";
 import Button from "../ui/button";
-import { motion, Variants } from "motion/react";
+import { motion } from "motion/react";
 import { Separator } from "../ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useTerminalsStore, type TerminalDatabaseOption } from "@/stores/terminals";
-
-const variants: Variants = {
-   initial: { opacity: 0, translate: "-50%", translateY: 48 },
-   animate: { opacity: 1, translate: "-50%", translateY: 0 },
-   exit: { opacity: 0, translate: "-50%", translateY: 48 },
-};
 
 interface TerminalsSidebarProps {
    databases: TerminalDatabaseOption[];

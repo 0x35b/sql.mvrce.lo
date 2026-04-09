@@ -10,7 +10,7 @@ export function ResizablePanel({ ref, className, children, ...props }: Resizable
    const [height, setHeight] = useState<number | undefined>(320);
 
    const [open, setOpen] = useState(false);
-   const [animating, setAnimating] = useState(false);
+   const [, setAnimating] = useState(false);
 
    const refs = useComposedRefs(ref, areaRef);
 

@@ -14,12 +14,11 @@ import {
    getCoreRowModel,
    getFacetedRowModel,
    Row,
-   Table as TableType,
    useReactTable,
    VisibilityState,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { CSSProperties, RefObject, useCallback, useMemo, useRef, useState } from "react";
+import { CSSProperties, useCallback, useMemo, useRef, useState } from "react";
 
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import { GetTableReturn } from "@/lib/database-factory";
@@ -282,7 +281,7 @@ export function DataTable({ fields = [], rows = [], editable = true }: DataTable
                         key={virtualRow.key}
                         data-index={virtualRow.index}
                         ref={virtualizer.measureElement}
-                        className="group/tr hover:text-foreground absolute flex shrink-0 grow"
+                        className="group/tr hover:text-foreground absolute top-0 flex shrink-0 grow"
                      >
                         {row.getVisibleCells()?.map((cell) => {
                            return (
@@ -306,60 +305,5 @@ export function DataTable({ fields = [], rows = [], editable = true }: DataTable
             </TBody>
          </Table>
       </TableWrapper>
-   );
-}
-
-interface BodyProps {
-   table: TableType<unknown>;
-   tableContainerRef: RefObject<HTMLDivElement | null>;
-}
-
-function Body({ table, tableContainerRef }: BodyProps) {
-   const { rows } = table.getRowModel();
-
-   // const scrollElementRef = useRef<HTMLDivElement | null>(tableContainerRef.current);
-   const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
-      count: rows.length,
-      getScrollElement: () => tableContainerRef.current,
-      estimateSize: () => 29, //estimate row height for accurate scrollbar dragging
-      overscan: 5,
-   });
-
-   return (
-      <TBody className="relative flex h-fit grow flex-col">
-         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const row = rows[virtualRow.index] as Row<unknown>;
-            if (!row) return null;
-
-            return (
-               <TRow
-                  style={{
-                     transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                  key={virtualRow.key}
-                  data-index={virtualRow.index}
-                  ref={rowVirtualizer.measureElement}
-                  className="group/tr hover:text-foreground absolute flex shrink-0 grow"
-               >
-                  {row.getVisibleCells()?.map((cell) => {
-                     return (
-                        <Td
-                           role="cell"
-                           data-pinned={cell.column.getIsPinned() ? true : undefined}
-                           key={cell.id}
-                           className={cn(
-                              "bg-background group/td hover:bg-background block shrink grow overflow-hidden p-0 group-hover/tr:bg-gray-100",
-                           )}
-                           style={{ ...getCommonPinningStyles(cell.column) }}
-                        >
-                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                           <span className="group-focus-within/td:border-primary pointer-events-none absolute -inset-px z-10 group-first/tr:top-0 group-focus-within/td:border" />
-                        </Td>
-                     );
-                  })}
-               </TRow>
-            );
-         })}
-      </TBody>
    );
 }
