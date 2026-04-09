@@ -25,7 +25,7 @@ export default function TerminalsWorkspace({ databases }: TerminalsWorkspaceProp
       <div className="flex grow flex-col overflow-hidden">
          <section className="relative flex min-h-0 grow self-stretch contain-layout">
             <TerminalsSidebar databases={databases} />
-            <Editor tables={[]} />
+            <Editor />
          </section>
          <AnimatePresence>
             {result ? (
